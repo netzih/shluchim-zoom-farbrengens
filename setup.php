@@ -22,6 +22,7 @@ try {
             occasion VARCHAR(100) DEFAULT NULL,
             event_date VARCHAR(255) DEFAULT NULL,
             event_timezone VARCHAR(50) DEFAULT 'America/New_York',
+            flyer_image VARCHAR(500) DEFAULT NULL,
             zoom_link VARCHAR(500) DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -36,6 +37,14 @@ try {
     try {
         $pdo->exec("ALTER TABLE events ADD COLUMN event_timezone VARCHAR(50) DEFAULT 'America/New_York' AFTER event_date");
         echo "✓ events table updated with timezone column\n";
+    } catch (PDOException $e) {
+        // Column likely already exists, ignore
+    }
+    
+    // Add flyer_image column if it doesn't exist (for existing installations)
+    try {
+        $pdo->exec("ALTER TABLE events ADD COLUMN flyer_image VARCHAR(500) DEFAULT NULL AFTER event_timezone");
+        echo "✓ events table updated with flyer_image column\n";
     } catch (PDOException $e) {
         // Column likely already exists, ignore
     }

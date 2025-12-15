@@ -212,6 +212,7 @@ function handleGetEvents() {
                 'occasion' => htmlspecialchars_decode($e['occasion'], ENT_QUOTES),
                 'date' => $e['event_date'],
                 'timezone' => $e['event_timezone'] ?? 'America/New_York',
+                'flyerImage' => $e['flyer_image'] ?? null,
                 'zoomLink' => $e['zoom_link']
             ];
         }, $events);
@@ -260,7 +261,14 @@ function handleCreateEvent() {
 
     try {
         $pdo = getDbConnection();
-        $stmt = $pdo->prepare("INSERT INTO events (title, description, farbrenger, occasion, event_date, event_timezone, zoom_link, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        
+        // Handle flyer upload if provided
+        $flyerPath = null;
+        if (isset($_FILES['flyer_file']) && $_FILES['flyer_file']['error'] === UPLOAD_ERR_OK) {
+            $flyerPath = handleFlyerUpload($_FILES['flyer_file']);
+        }
+        
+        $stmt = $pdo->prepare("INSERT INTO events (title, description, farbrenger, occasion, event_date, event_timezone, flyer_image, zoom_link, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             sanitizeInput($_POST['title']),
             sanitizeInput($_POST['description'] ?? null),
@@ -268,6 +276,7 @@ function handleCreateEvent() {
             sanitizeInput($_POST['occasion'] ?? null),
             sanitizeInput($_POST['event_date'] ?? null),
             sanitizeInput($_POST['event_timezone'] ?? 'America/New_York'),
+            $flyerPath,
             sanitizeInput($_POST['zoom_link'] ?? null),
             $_SESSION['admin_id']
         ]);
@@ -284,17 +293,59 @@ function handleUpdateEvent() {
 
     try {
         $pdo = getDbConnection();
-        $stmt = $pdo->prepare("UPDATE events SET title=?, description=?, farbrenger=?, occasion=?, event_date=?, event_timezone=?, zoom_link=? WHERE id=?");
-        $stmt->execute([
-            sanitizeInput($_POST['title']),
-            sanitizeInput($_POST['description'] ?? null),
-            sanitizeInput($_POST['farbrenger'] ?? null),
-            sanitizeInput($_POST['occasion'] ?? null),
-            sanitizeInput($_POST['event_date'] ?? null),
-            sanitizeInput($_POST['event_timezone'] ?? 'America/New_York'),
-            sanitizeInput($_POST['zoom_link'] ?? null),
-            $_POST['event_id']
-        ]);
+        
+        // Handle flyer upload/removal
+        $flyerPath = null;
+        $updateFlyer = false;
+        
+        if (isset($_POST['remove_flyer']) && $_POST['remove_flyer'] === '1') {
+            // Get old flyer to delete
+            $stmt = $pdo->prepare("SELECT flyer_image FROM events WHERE id = ?");
+            $stmt->execute([$_POST['event_id']]);
+            $oldFlyer = $stmt->fetchColumn();
+            if ($oldFlyer && file_exists($oldFlyer)) {
+                @unlink($oldFlyer);
+            }
+            $flyerPath = null;
+            $updateFlyer = true;
+        } elseif (isset($_FILES['flyer_file']) && $_FILES['flyer_file']['error'] === UPLOAD_ERR_OK) {
+            // Get old flyer to delete
+            $stmt = $pdo->prepare("SELECT flyer_image FROM events WHERE id = ?");
+            $stmt->execute([$_POST['event_id']]);
+            $oldFlyer = $stmt->fetchColumn();
+            if ($oldFlyer && file_exists($oldFlyer)) {
+                @unlink($oldFlyer);
+            }
+            $flyerPath = handleFlyerUpload($_FILES['flyer_file']);
+            $updateFlyer = true;
+        }
+        
+        if ($updateFlyer) {
+            $stmt = $pdo->prepare("UPDATE events SET title=?, description=?, farbrenger=?, occasion=?, event_date=?, event_timezone=?, flyer_image=?, zoom_link=? WHERE id=?");
+            $stmt->execute([
+                sanitizeInput($_POST['title']),
+                sanitizeInput($_POST['description'] ?? null),
+                sanitizeInput($_POST['farbrenger'] ?? null),
+                sanitizeInput($_POST['occasion'] ?? null),
+                sanitizeInput($_POST['event_date'] ?? null),
+                sanitizeInput($_POST['event_timezone'] ?? 'America/New_York'),
+                $flyerPath,
+                sanitizeInput($_POST['zoom_link'] ?? null),
+                $_POST['event_id']
+            ]);
+        } else {
+            $stmt = $pdo->prepare("UPDATE events SET title=?, description=?, farbrenger=?, occasion=?, event_date=?, event_timezone=?, zoom_link=? WHERE id=?");
+            $stmt->execute([
+                sanitizeInput($_POST['title']),
+                sanitizeInput($_POST['description'] ?? null),
+                sanitizeInput($_POST['farbrenger'] ?? null),
+                sanitizeInput($_POST['occasion'] ?? null),
+                sanitizeInput($_POST['event_date'] ?? null),
+                sanitizeInput($_POST['event_timezone'] ?? 'America/New_York'),
+                sanitizeInput($_POST['zoom_link'] ?? null),
+                $_POST['event_id']
+            ]);
+        }
         jsonResponse(true, null, 'Event updated successfully');
     } catch (PDOException $e) {
         jsonResponse(false, null, 'Failed to update event', 500);
@@ -360,6 +411,35 @@ function handleGetOccasions() {
     } catch (PDOException $e) {
         jsonResponse(false, null, 'Failed to retrieve occasions', 500);
     }
+}
+
+function handleFlyerUpload($file) {
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!in_array($file['type'], $allowedTypes)) {
+        jsonResponse(false, null, 'Invalid file type. Only JPG, PNG, GIF, and WebP images are allowed.', 400);
+    }
+    
+    // Validate file size (16MB max)
+    if ($file['size'] > 16 * 1024 * 1024) {
+        jsonResponse(false, null, 'File size must be less than 16MB', 400);
+    }
+    
+    // Generate unique filename
+    $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $filename = 'flyer_' . time() . '_' . bin2hex(random_bytes(8)) . '.' . $extension;
+    $uploadPath = 'uploads/flyers/' . $filename;
+    
+    // Create directory if it doesn't exist
+    if (!is_dir('uploads/flyers')) {
+        mkdir('uploads/flyers', 0755, true);
+    }
+    
+    // Move uploaded file
+    if (!move_uploaded_file($file['tmp_name'], $uploadPath)) {
+        jsonResponse(false, null, 'Failed to save uploaded flyer', 500);
+    }
+    
+    return $uploadPath;
 }
 
 // === SETTINGS ===

@@ -191,6 +191,7 @@ $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' 
                         </div>
                         ${e.occasion?`<div class="event-occasion">${icons.star}${e.occasion}</div>`:''}
                     </div>
+                    ${e.flyerImage?`<div class="event-flyer" style="margin:1rem 0;"><a href="${e.flyerImage}" target="_blank" rel="noopener"><img src="${e.flyerImage}" alt="Event Flyer" style="max-width:100%;max-height:300px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);cursor:pointer;transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"></a></div>`:''}
                     ${e.description?`<div class="event-description">${icons.info}<p>${e.description}</p></div>`:''}
                     <div class="event-details">
                         ${formatDate(e.date)?`<div class="event-detail">${icons.calendar}<span>${formatDate(e.date)}</span></div>`:''}

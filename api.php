@@ -70,6 +70,9 @@ try {
             if ($method !== 'POST') jsonResponse(false, null, 'Method not allowed', 405);
             handleVerifySubmissionPassword();
             break;
+        case 'get_occasions':
+            handleGetOccasions();
+            break;
 
         // Settings
         case 'get_settings':
@@ -345,6 +348,17 @@ function handleVerifySubmissionPassword() {
         $_POST['password'] === $stored ? jsonResponse(true, null, 'Password verified') : jsonResponse(false, null, 'Incorrect password', 401);
     } catch (PDOException $e) {
         jsonResponse(false, null, 'Failed to verify password', 500);
+    }
+}
+
+function handleGetOccasions() {
+    try {
+        $pdo = getDbConnection();
+        $stmt = $pdo->query("SELECT DISTINCT occasion FROM events WHERE occasion IS NOT NULL AND occasion != '' AND is_active = 1 ORDER BY occasion ASC");
+        $occasions = array_column($stmt->fetchAll(), 'occasion');
+        jsonResponse(true, $occasions, 'Occasions retrieved successfully');
+    } catch (PDOException $e) {
+        jsonResponse(false, null, 'Failed to retrieve occasions', 500);
     }
 }
 

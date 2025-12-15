@@ -222,15 +222,21 @@
                     <div class="form-group"><label for="farbrenger">Farbrenger</label><input type="text" id="farbrenger"
                             name="farbrenger" placeholder="e.g., Rabbi Yossi Shuchat"><span class="help-text">Who will
                             be leading the Farbrengen</span></div>
-                    <div class="form-group"><label for="occasion">Occasion</label><input type="text" id="occasion"
-                            name="occasion" placeholder="e.g., Yud Tes Kislev, Yud Shevat, Purim"><span
-                            class="help-text">What is the occasion for this Farbrengen?</span></div>
+                    <div class="form-group"><label for="occasion">Occasion</label>
+                        <select id="occasion" name="occasion">
+                            <option value="">-- Select Occasion --</option>
+                        </select>
+                        <input type="text" id="occasionOther" name="occasion_other" placeholder="Enter custom occasion"
+                            style="display:none;margin-top:8px;">
+                        <span class="help-text">What is the occasion for this Farbrengen?</span>
+                    </div>
                     <div class="form-group"><label for="description">Description</label><textarea id="description"
                             name="description" placeholder="Describe what this Farbrengen is about..."></textarea></div>
                     <div class="form-group"><label for="event_date">Date & Time</label><input type="datetime-local"
                             id="event_date" name="event_date"><span class="help-text">When will the Farbrengen take
                             place?</span></div>
-                    <div class="form-group"><label for="event_timezone">Timezone</label><select id="event_timezone" name="event_timezone">
+                    <div class="form-group"><label for="event_timezone">Timezone</label><select id="event_timezone"
+                            name="event_timezone">
                             <optgroup label="US & Canada">
                                 <option value="America/New_York" selected>Eastern Time (ET)</option>
                                 <option value="America/Chicago">Central Time (CT)</option>
@@ -285,10 +291,53 @@
             e.preventDefault();
             submitBtn.disabled = true; submitBtn.textContent = 'Submitting...';
             const f = new FormData(submitEventForm);
+            // Handle occasion - use custom value if 'Other' selected
+            const occasionSelect = document.getElementById('occasion');
+            const occasionOther = document.getElementById('occasionOther');
+            if (occasionSelect.value === '__other__') {
+                f.set('occasion', occasionOther.value);
+            }
+            f.delete('occasion_other');
             const dt = f.get('event_date'); if (dt) f.set('event_date', dt.replace('T', ' '));
             f.append('action', 'submit_public_event');
-            try { const r = await (await fetch('api.php', { method: 'POST', body: f })).json(); if (r.success) { showAlert('Success! Your Farbrengen is now live.', 'success'); submitEventForm.reset(); } else showAlert(r.message || 'Failed', 'error'); } catch (e) { showAlert('Error', 'error'); } finally { submitBtn.disabled = false; submitBtn.textContent = 'Submit Farbrengen'; }
+            try { const r = await (await fetch('api.php', { method: 'POST', body: f })).json(); if (r.success) { showAlert('Success! Your Farbrengen is now live.', 'success'); submitEventForm.reset(); occasionOther.style.display = 'none'; } else showAlert(r.message || 'Failed', 'error'); } catch (e) { showAlert('Error', 'error'); } finally { submitBtn.disabled = false; submitBtn.textContent = 'Submit Farbrengen'; }
         });
+
+        // Load occasions from database
+        async function loadOccasions() {
+            try {
+                const r = await (await fetch('api.php?action=get_occasions')).json();
+                const select = document.getElementById('occasion');
+                if (r.success && r.data) {
+                    r.data.forEach(occ => {
+                        const opt = document.createElement('option');
+                        opt.value = occ;
+                        opt.textContent = occ;
+                        select.appendChild(opt);
+                    });
+                }
+                // Add 'Other' option
+                const otherOpt = document.createElement('option');
+                otherOpt.value = '__other__';
+                otherOpt.textContent = '+ Other (enter custom)';
+                select.appendChild(otherOpt);
+            } catch (e) { console.error('Failed to load occasions'); }
+        }
+
+        // Show/hide custom occasion input
+        document.getElementById('occasion').addEventListener('change', function () {
+            const otherInput = document.getElementById('occasionOther');
+            if (this.value === '__other__') {
+                otherInput.style.display = 'block';
+                otherInput.focus();
+            } else {
+                otherInput.style.display = 'none';
+                otherInput.value = '';
+            }
+        });
+
+        // Load occasions on page load
+        loadOccasions();
     </script>
 </body>
 

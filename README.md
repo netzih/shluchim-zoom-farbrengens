@@ -20,11 +20,30 @@ A simple website for listing upcoming Zoom Farbrengens for Shluchim worldwide.
 
 ## Quick Start
 
+### Option A: Automated Setup (Plesk Hosting)
+
+If you're on Plesk hosting, run the automated setup script:
+
+```bash
+chmod +x plesk-setup.sh
+./plesk-setup.sh
+```
+
+This will:
+- Create the database in your Plesk account
+- Generate `config.php` with secure credentials
+- Optionally import the database schema
+
+### Option B: Manual Setup
+
 1. Create a MySQL database
 2. Copy `config.php.example` to `config.php` and update database credentials
 3. Import `database.sql` to set up tables
-4. Run `setup.php` to initialize the admin user
-5. Access `/admin.php` to log in (default: admin / farbrengen2024)
+
+### After Setup
+
+1. Run `setup.php` to initialize the admin user
+2. Access `/admin.php` to log in (default: admin / farbrengen2024)
 
 ## Event Fields
 

@@ -22,17 +22,11 @@ A simple website for listing upcoming Zoom Farbrengens for Shluchim worldwide.
 
 ### Option A: Automated Setup (Plesk Hosting)
 
-If you're on Plesk hosting, run the automated setup script:
-
-```bash
-chmod +x plesk-setup.sh
-./plesk-setup.sh
-```
-
-This will:
-- Create the database in your Plesk account
-- Generate `config.php` with secure credentials
-- Optionally import the database schema
+1. Create a database in Plesk: *Websites & Domains → Databases → Add Database*
+2. Visit `https://yourdomain.com/plesk-setup.php` in your browser
+3. Enter your database credentials from Plesk
+4. The script will create `config.php` and import the schema
+5. **Delete `plesk-setup.php` after setup!**
 
 ### Option B: Manual Setup
 

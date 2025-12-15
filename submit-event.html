@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit a Farbrengen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 2rem 1rem;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #6B2C3E 0%, #8B3A4E 30%, #E67E22 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.75rem;
+        }
+
+        .header p {
+            color: #5a6a7a;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .header .back-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #6B2C3E;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .header .back-link:hover {
+            color: #E67E22;
+        }
+
+        .form-container {
+            background: linear-gradient(145deg, #ffffff 0%, #faf8f9 100%);
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 2.5rem;
+            border: 1px solid rgba(107, 44, 62, 0.15);
+        }
+
+        #passwordPrompt {
+            display: block;
+        }
+
+        #eventFormContainer {
+            display: none;
+        }
+
+        .password-prompt-text {
+            text-align: center;
+            color: #5a6a7a;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #2D2D2D;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group label .required {
+            color: #E67E22;
+            margin-left: 0.25rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #6B2C3E;
+            box-shadow: 0 0 0 3px rgba(107, 44, 62, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group .help-text {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #5a6a7a;
+            font-style: italic;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(135deg, #6B2C3E 0%, #8B3A4E 50%, #6B2C3E 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #7D3550 0%, #9D4560 50%, #7D3550 100%);
+            box-shadow: 0 4px 15px rgba(107, 44, 62, 0.3);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .alert {
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .form-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Submit a Farbrengen</h1>
+            <p>Share your Zoom Farbrengen with Shluchim worldwide</p>
+            <a href="/" class="back-link">← Back to Farbrengens</a>
+        </header>
+        <div class="form-container">
+            <div id="alertMessage" class="alert"></div>
+            <div id="passwordPrompt">
+                <p class="password-prompt-text">Please enter the submission password to continue:</p>
+                <form id="passwordForm">
+                    <div class="form-group"><label for="accessPassword">Password<span
+                                class="required">*</span></label><input type="password" id="accessPassword" required
+                            placeholder="Enter password"></div>
+                    <button type="submit" class="submit-btn">Continue</button>
+                </form>
+            </div>
+            <div id="eventFormContainer">
+                <form id="submitEventForm">
+                    <div class="form-group"><label for="title">Farbrengen Title<span
+                                class="required">*</span></label><input type="text" id="title" name="title" required
+                            placeholder="e.g., Yud Tes Kislev Farbrengen"></div>
+                    <div class="form-group"><label for="farbrenger">Farbrenger</label><input type="text" id="farbrenger"
+                            name="farbrenger" placeholder="e.g., Rabbi Yossi Shuchat"><span class="help-text">Who will
+                            be leading the Farbrengen</span></div>
+                    <div class="form-group"><label for="occasion">Occasion</label><input type="text" id="occasion"
+                            name="occasion" placeholder="e.g., Yud Tes Kislev, Yud Shevat, Purim"><span
+                            class="help-text">What is the occasion for this Farbrengen?</span></div>
+                    <div class="form-group"><label for="description">Description</label><textarea id="description"
+                            name="description" placeholder="Describe what this Farbrengen is about..."></textarea></div>
+                    <div class="form-group"><label for="event_date">Date & Time</label><input type="datetime-local"
+                            id="event_date" name="event_date"><span class="help-text">When will the Farbrengen take
+                            place?</span></div>
+                    <div class="form-group"><label for="zoom_link">Zoom Link<span
+                                class="required">*</span></label><input type="url" id="zoom_link" name="zoom_link"
+                            required placeholder="https://zoom.us/j/123456789"><span class="help-text">The Zoom meeting
+                            URL for participants to join</span></div>
+                    <button type="submit" class="submit-btn" id="submitBtn">Submit Farbrengen</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        const passwordForm = document.getElementById('passwordForm');
+        const submitEventForm = document.getElementById('submitEventForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const alertMessage = document.getElementById('alertMessage');
+        const passwordPrompt = document.getElementById('passwordPrompt');
+        const eventFormContainer = document.getElementById('eventFormContainer');
+
+        function showAlert(msg, type) { alertMessage.textContent = msg; alertMessage.className = 'alert alert-' + type + ' show'; alertMessage.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); if (type === 'success') setTimeout(() => alertMessage.classList.remove('show'), 5000); }
+
+        if (sessionStorage.getItem('submission_authenticated') === 'true') { passwordPrompt.style.display = 'none'; eventFormContainer.style.display = 'block'; }
+
+        passwordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const f = new FormData(); f.append('action', 'verify_submission_password'); f.append('password', document.getElementById('accessPassword').value);
+            try { const r = await (await fetch('api.php', { method: 'POST', body: f })).json(); if (r.success) { sessionStorage.setItem('submission_authenticated', 'true'); passwordPrompt.style.display = 'none'; eventFormContainer.style.display = 'block'; alertMessage.classList.remove('show'); } else { showAlert('Incorrect password', 'error'); document.getElementById('accessPassword').value = ''; } } catch (e) { showAlert('Error', 'error'); }
+        });
+
+        submitEventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitBtn.disabled = true; submitBtn.textContent = 'Submitting...';
+            const f = new FormData(submitEventForm);
+            const dt = f.get('event_date'); if (dt) f.set('event_date', dt.replace('T', ' '));
+            f.append('action', 'submit_public_event');
+            try { const r = await (await fetch('api.php', { method: 'POST', body: f })).json(); if (r.success) { showAlert('Success! Your Farbrengen is now live.', 'success'); submitEventForm.reset(); } else showAlert(r.message || 'Failed', 'error'); } catch (e) { showAlert('Error', 'error'); } finally { submitBtn.disabled = false; submitBtn.textContent = 'Submit Farbrengen'; }
+        });
+    </script>
+</body>
+
+</html>

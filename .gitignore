@@ -1,0 +1,21 @@
+# Ignore config file with credentials
+config.php
+
+# IDE/Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Uploaded files
+uploads/banners/*
+uploads/social/*
+!uploads/banners/.gitkeep
+!uploads/social/.gitkeep
+
+# Logs
+*.log

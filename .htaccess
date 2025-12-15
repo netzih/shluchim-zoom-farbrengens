@@ -10,9 +10,13 @@
     RewriteEngine On
     RewriteBase /
 
-    # Remove .php extension
+    # Skip rewriting for api.php (needed for AJAX calls)
+    RewriteRule ^api\.php$ - [L]
+
+    # Remove .php extension (except api.php)
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_FILENAME}\.php -f
+    RewriteCond %{REQUEST_URI} !^/api\.php
     RewriteRule ^([^/]+)/?$ $1.php [L]
 
     # Remove .html extension
@@ -20,8 +24,9 @@
     RewriteCond %{REQUEST_FILENAME}\.html -f
     RewriteRule ^([^/]+)/?$ $1.html [L]
 
-    # Redirect requests with .php to clean URLs
+    # Redirect requests with .php to clean URLs (except api.php)
     RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s/+([^.]+)\.php[?\s] [NC]
+    RewriteCond %{REQUEST_URI} !^/api\.php
     RewriteRule ^ /%1 [R=301,L]
 </IfModule>
 

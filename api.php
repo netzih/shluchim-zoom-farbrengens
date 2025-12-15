@@ -208,6 +208,7 @@ function handleGetEvents() {
                 'farbrenger' => htmlspecialchars_decode($e['farbrenger'], ENT_QUOTES),
                 'occasion' => htmlspecialchars_decode($e['occasion'], ENT_QUOTES),
                 'date' => $e['event_date'],
+                'timezone' => $e['event_timezone'] ?? 'America/New_York',
                 'zoomLink' => $e['zoom_link']
             ];
         }, $events);
@@ -256,13 +257,14 @@ function handleCreateEvent() {
 
     try {
         $pdo = getDbConnection();
-        $stmt = $pdo->prepare("INSERT INTO events (title, description, farbrenger, occasion, event_date, zoom_link, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT INTO events (title, description, farbrenger, occasion, event_date, event_timezone, zoom_link, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             sanitizeInput($_POST['title']),
             sanitizeInput($_POST['description'] ?? null),
             sanitizeInput($_POST['farbrenger'] ?? null),
             sanitizeInput($_POST['occasion'] ?? null),
             sanitizeInput($_POST['event_date'] ?? null),
+            sanitizeInput($_POST['event_timezone'] ?? 'America/New_York'),
             sanitizeInput($_POST['zoom_link'] ?? null),
             $_SESSION['admin_id']
         ]);
@@ -279,13 +281,14 @@ function handleUpdateEvent() {
 
     try {
         $pdo = getDbConnection();
-        $stmt = $pdo->prepare("UPDATE events SET title=?, description=?, farbrenger=?, occasion=?, event_date=?, zoom_link=? WHERE id=?");
+        $stmt = $pdo->prepare("UPDATE events SET title=?, description=?, farbrenger=?, occasion=?, event_date=?, event_timezone=?, zoom_link=? WHERE id=?");
         $stmt->execute([
             sanitizeInput($_POST['title']),
             sanitizeInput($_POST['description'] ?? null),
             sanitizeInput($_POST['farbrenger'] ?? null),
             sanitizeInput($_POST['occasion'] ?? null),
             sanitizeInput($_POST['event_date'] ?? null),
+            sanitizeInput($_POST['event_timezone'] ?? 'America/New_York'),
             sanitizeInput($_POST['zoom_link'] ?? null),
             $_POST['event_id']
         ]);
@@ -313,13 +316,14 @@ function handleSubmitPublicEvent() {
 
     try {
         $pdo = getDbConnection();
-        $stmt = $pdo->prepare("INSERT INTO events (title, description, farbrenger, occasion, event_date, zoom_link, is_active) VALUES (?, ?, ?, ?, ?, ?, 1)");
+        $stmt = $pdo->prepare("INSERT INTO events (title, description, farbrenger, occasion, event_date, event_timezone, zoom_link, is_active) VALUES (?, ?, ?, ?, ?, ?, ?, 1)");
         $stmt->execute([
             sanitizeInput($_POST['title']),
             sanitizeInput($_POST['description'] ?? null),
             sanitizeInput($_POST['farbrenger'] ?? null),
             sanitizeInput($_POST['occasion'] ?? null),
             sanitizeInput($_POST['event_date'] ?? null),
+            sanitizeInput($_POST['event_timezone'] ?? 'America/New_York'),
             sanitizeInput($_POST['zoom_link'] ?? null)
         ]);
         jsonResponse(true, ['id' => $pdo->lastInsertId()], 'Event submitted successfully!', 201);

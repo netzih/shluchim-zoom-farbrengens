@@ -104,12 +104,35 @@ $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' 
             info: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
             calendar: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
             clock: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+            globe: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>',
             zoom: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 8v8a2 2 0 002 2h8a2 2 0 002-2v-2l4 3V7l-4 3V8a2 2 0 00-2-2H6a2 2 0 00-2 2z"/></svg>'
         };
 
+        const tzAbbrs = {'America/New_York':'ET','America/Chicago':'CT','America/Denver':'MT','America/Los_Angeles':'PT','America/Anchorage':'AKT','Pacific/Honolulu':'HT','Asia/Jerusalem':'IST','Asia/Dubai':'GST','Europe/London':'GMT','Europe/Paris':'CET','Europe/Moscow':'MSK','Australia/Sydney':'AEST','Asia/Shanghai':'CST','Asia/Tokyo':'JST'};
+        function getTzAbbr(tz) { return tzAbbrs[tz] || (tz ? tz.split('/').pop() : 'ET'); }
+
         function formatDate(d) { if (!d) return ''; const [y,m,day] = d.split(' ')[0].split('-').map(Number); return new Date(y, m-1, day).toLocaleDateString('en-US', {weekday:'long',month:'long',day:'numeric'}); }
         function formatTime(d) { if (!d || !d.includes(' ')) return ''; const [h,m] = d.split(' ')[1].split(':').map(Number); return `${h%12||12}:${m.toString().padStart(2,'0')} ${h>=12?'PM':'AM'}`; }
-        function isPast(d) { if (!d) return false; const [y,m,day] = d.split(' ')[0].split('-').map(Number); let dt = new Date(y, m-1, day, 23, 59); if (d.includes(' ')) { const [h,mi] = d.split(' ')[1].split(':').map(Number); dt.setHours(h, mi); } return dt < new Date(); }
+        function formatTimeWithTz(d, tz) { const time = formatTime(d); return time ? `${time} ${getTzAbbr(tz)}` : ''; }
+        function getLocalTime(d, tz) {
+            if (!d || !d.includes(' ')) return '';
+            try {
+                const [datePart, timePart] = d.split(' ');
+                const [y, m, day] = datePart.split('-').map(Number);
+                const [h, mi] = timePart.split(':').map(Number);
+                const eventDate = new Date(Date.UTC(y, m-1, day, h, mi));
+                const formatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz || 'America/New_York', hour12: true });
+                const origParts = formatter.formatToParts(eventDate);
+                const origH = parseInt(origParts.find(p => p.type === 'hour').value);
+                const origM = parseInt(origParts.find(p => p.type === 'minute').value);
+                const origP = origParts.find(p => p.type === 'dayPeriod').value;
+                const offset = (h * 60 + mi) - (origH * 60 + origM + (origP === 'PM' && origH !== 12 ? 720 : 0) + (origP === 'AM' && origH === 12 ? -720 : 0));
+                const localDate = new Date(eventDate.getTime() + offset * 60000);
+                const localFormatter = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short', hour12: true });
+                return localFormatter.format(localDate);
+            } catch (e) { return ''; }
+        }
+        function isPast(d, tz) { if (!d) return false; const [y,m,day] = d.split(' ')[0].split('-').map(Number); let dt = new Date(y, m-1, day, 23, 59); if (d.includes(' ')) { const [h,mi] = d.split(' ')[1].split(':').map(Number); dt.setHours(h, mi); } return dt < new Date(); }
 
         async function loadCustomization() {
             try {
@@ -151,7 +174,7 @@ $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' 
         function renderEvents(events) {
             const c = document.getElementById('eventsList');
             if (!events.length) { c.innerHTML = '<div class="no-events">No Farbrengens scheduled.</div>'; return; }
-            const upcoming = events.filter(e => !isPast(e.date)), past = events.filter(e => isPast(e.date));
+            const upcoming = events.filter(e => !isPast(e.date, e.timezone)), past = events.filter(e => isPast(e.date, e.timezone));
             let html = '';
             upcoming.forEach(e => html += card(e, false));
             if (past.length) { if (upcoming.length) html += '<div class="past-events-divider"><span>Past Farbrengens</span></div>'; past.forEach(e => html += card(e, true)); }
@@ -171,7 +194,8 @@ $currentUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' 
                     ${e.description?`<div class="event-description">${icons.info}<p>${e.description}</p></div>`:''}
                     <div class="event-details">
                         ${formatDate(e.date)?`<div class="event-detail">${icons.calendar}<span>${formatDate(e.date)}</span></div>`:''}
-                        ${formatTime(e.date)?`<div class="event-detail">${icons.clock}<span>${formatTime(e.date)}</span></div>`:''}
+                        ${formatTimeWithTz(e.date, e.timezone)?`<div class="event-detail">${icons.clock}<span>${formatTimeWithTz(e.date, e.timezone)}</span></div>`:''}
+                        ${getLocalTime(e.date, e.timezone)?`<div class="event-detail" style="background:#e8f4e8;padding:4px 8px;border-radius:6px;">${icons.globe}<span style="color:#2d6a2d;">Your time: ${getLocalTime(e.date, e.timezone)}</span></div>`:''}
                     </div>
                 </div>
                 ${e.zoomLink?`<a href="${e.zoomLink}" target="_blank" rel="noopener" class="event-cta">${icons.zoom}Join Zoom Farbrengen</a>`:''}

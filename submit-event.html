@@ -230,6 +230,30 @@
                     <div class="form-group"><label for="event_date">Date & Time</label><input type="datetime-local"
                             id="event_date" name="event_date"><span class="help-text">When will the Farbrengen take
                             place?</span></div>
+                    <div class="form-group"><label for="event_timezone">Timezone</label><select id="event_timezone" name="event_timezone">
+                            <optgroup label="US & Canada">
+                                <option value="America/New_York" selected>Eastern Time (ET)</option>
+                                <option value="America/Chicago">Central Time (CT)</option>
+                                <option value="America/Denver">Mountain Time (MT)</option>
+                                <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                                <option value="America/Anchorage">Alaska Time</option>
+                                <option value="Pacific/Honolulu">Hawaii Time</option>
+                            </optgroup>
+                            <optgroup label="Israel & Middle East">
+                                <option value="Asia/Jerusalem">Israel Time (IST)</option>
+                                <option value="Asia/Dubai">Gulf Time (GST)</option>
+                            </optgroup>
+                            <optgroup label="Europe">
+                                <option value="Europe/London">UK Time (GMT/BST)</option>
+                                <option value="Europe/Paris">Central European (CET)</option>
+                                <option value="Europe/Moscow">Moscow Time (MSK)</option>
+                            </optgroup>
+                            <optgroup label="Other">
+                                <option value="Australia/Sydney">Sydney Time (AEST)</option>
+                                <option value="Asia/Shanghai">China Time (CST)</option>
+                                <option value="Asia/Tokyo">Japan Time (JST)</option>
+                            </optgroup>
+                        </select><span class="help-text">What timezone is the event time in?</span></div>
                     <div class="form-group"><label for="zoom_link">Zoom Link<span
                                 class="required">*</span></label><input type="url" id="zoom_link" name="zoom_link"
                             required placeholder="https://zoom.us/j/123456789"><span class="help-text">The Zoom meeting

@@ -21,6 +21,7 @@ try {
             farbrenger VARCHAR(255) DEFAULT NULL,
             occasion VARCHAR(100) DEFAULT NULL,
             event_date VARCHAR(255) DEFAULT NULL,
+            event_timezone VARCHAR(50) DEFAULT 'America/New_York',
             zoom_link VARCHAR(500) DEFAULT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -30,6 +31,14 @@ try {
             INDEX idx_active (is_active)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     ");
+    
+    // Add event_timezone column if it doesn't exist (for existing installations)
+    try {
+        $pdo->exec("ALTER TABLE events ADD COLUMN event_timezone VARCHAR(50) DEFAULT 'America/New_York' AFTER event_date");
+        echo "✓ events table updated with timezone column\n";
+    } catch (PDOException $e) {
+        // Column likely already exists, ignore
+    }
     echo "✓ events table ready\n";
 
     // Create admin_users table
